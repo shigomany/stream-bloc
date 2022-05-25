@@ -9,6 +9,7 @@ import 'package:stream_bloc/src/public/interfaces/stream_bloc_mapper.dart';
 import 'package:stream_bloc/src/public/interfaces/stream_bloc_transformers.dart';
 
 abstract class StreamBlocBase<Event extends Object?, State extends Object?>
+    extends BlocBase<State>
     implements
         BlocEventSink<Event>,
         StateStreamableSource<State>,
@@ -24,7 +25,9 @@ abstract class StreamBlocBase<Event extends Object?, State extends Object?>
 
   State _state;
 
-  StreamBlocBase(State initialState) : _state = initialState {
+  StreamBlocBase(State initialState)
+      : _state = initialState,
+        super(initialState) {
     StreamBlocObserver.current?.onCreate(this);
     _bindEventsToStates();
   }
@@ -76,13 +79,14 @@ abstract class StreamBlocBase<Event extends Object?, State extends Object?>
     }
   }
 
-  @override
-  void addError(Object error, [StackTrace? stackTrace]) {
-    onError(error, stackTrace ?? StackTrace.current);
-  }
+  // @override
+  // void addError(Object error, [StackTrace? stackTrace]) {
+  //   onError(error, stackTrace ?? StackTrace.current);
+  // }
 
   @override
-  FutureOr<void> close() async {
+  Future<void> close() async {
+    await super.close();
     await _eventStreamController.close();
     await _transitionSubscription?.cancel();
     StreamBlocObserver.current?.onClose(this);
